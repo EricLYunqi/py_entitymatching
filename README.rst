@@ -52,5 +52,6 @@ Notes
 =========
 
 py_stringmatching needs numpy < 0.2.0 becuase a new recent release.
+
 py_stringsimjoin can only be installed by building source code since the source release on PyPI is missing cythonize.py.
 
