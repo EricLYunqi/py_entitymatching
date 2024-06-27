@@ -159,7 +159,11 @@ def _make_tok_delim(d):
         s = gh.convert_to_str_unicode(s)
 
         # Initialize the tokenizer measure object
-        measure = sm.DelimiterTokenizer(delim_set=[d])
+        measure = ''
+        if isinstance(d, list):
+            measure = sm.DelimiterTokenizer(delim_set=d)
+        else:
+        	measure = sm.DelimiterTokenizer(delim_set=[d])
         # Call the function that will tokenize the input string.
         return measure.tokenize(s)
 

@@ -2,6 +2,7 @@
 This module contains functions for auto feature generation.
 """
 import logging
+import pdb
 
 import pandas as pd
 import six
@@ -150,6 +151,7 @@ def get_features(ltable, rtable, l_attr_types, r_attr_types,
             # features_1 = _get_features_for_type(l_attr_type)
             # features_2 = _get_features_for_type(r_attr_type)
             # features = set(features_1).union(features_2)
+            # print(ac, l_attr_type, r_attr_type)
             continue
 
         # Generate features
@@ -169,6 +171,7 @@ def get_features(ltable, rtable, l_attr_types, r_attr_types,
                                    'simfunction', 'function',
                                    'function_source', 'is_auto_generated']]
     # Return the feature table.
+    # print(feature_table)
     return feature_table
 
 
@@ -449,31 +452,57 @@ def _get_feat_lkp_tbl():
     lookup_table = dict()
 
     # Features for type str_eq_1w
-    lookup_table['STR_EQ_1W'] = [('lev_dist'), ('lev_sim'), ('jaro'),
-                                ('jaro_winkler'),
+    lookup_table['STR_EQ_1W'] = [('lev_dist'), 
+                                 # ('lev_sim'), 
+                                 ('jaro'),
+                                 ('jaro_winkler'),
                                  ('exact_match'),
-                                 ('jaccard', 'qgm_3', 'qgm_3')]
+                                 ('jaccard', 'qgm_3', 'qgm_3'),
+                                 ('dice', 'qgm_3', 'qgm_3'),
+                                 ('overlap', 'qgm_3', 'qgm_3')]
 
     # Features for type str_bt_1w_5w
     lookup_table['STR_BT_1W_5W'] = [('jaccard', 'qgm_3', 'qgm_3'),
-                                    ('cosine', 'dlm_dc0', 'dlm_dc0'),
+                                    # ('cosine', 'qgm_3', 'qgm_3'),
+                                    ('dice', 'qgm_3', 'qgm_3'),
+                                    ('overlap', 'qgm_3', 'qgm_3'),
                                     ('jaccard', 'dlm_dc0', 'dlm_dc0'),
-                                    ('monge_elkan'), ('lev_dist'), ('lev_sim'),
+                                    ('cosine', 'dlm_dc0', 'dlm_dc0'),
+                                    ('dice', 'dlm_dc0', 'dlm_dc0'),
+                                    ('overlap', 'dlm_dc0', 'dlm_dc0'),
+                                    # ('cosine', 'dlm_dc0', 'dlm_dc0'),
+                                    # ('jaccard', 'dlm_dc0', 'dlm_dc0'),
+                                    # ('lev_dist'), 
+                                    # ('lev_sim'),
+                                    ('monge_elkan'), 
                                     ('needleman_wunsch'),
                                     ('smith_waterman')]  # dlm_dc0 is the concrete space tokenizer
 
     # Features for type str_bt_5w_10w
-    lookup_table['STR_BT_5W_10W'] = [('jaccard', 'qgm_3', 'qgm_3'),
+    lookup_table['STR_BT_5W_10W'] = [# ('jaccard', 'qgm_3', 'qgm_3'),
+                                    #  ('cosine', 'qgm_3', 'qgm_3'),
+                                    #  ('dice', 'qgm_3', 'qgm_3'),
+                                     ('jaccard', 'dlm_dc0', 'dlm_dc0'),
                                      ('cosine', 'dlm_dc0', 'dlm_dc0'),
-                                     ('monge_elkan'), ('lev_dist'), ('lev_sim')]
+                                     ('dice', 'dlm_dc0', 'dlm_dc0'),
+                                     ('overlap', 'dlm_dc0', 'dlm_dc0'),
+                                     ('monge_elkan'), 
+                                     # ('lev_sim'), ('lev_dist')
+                                    ]
 
     # Features for type str_gt_10w
-    lookup_table['STR_GT_10W'] = [('jaccard', 'qgm_3', 'qgm_3'),
-                                  ('cosine', 'dlm_dc0', 'dlm_dc0')]
+    lookup_table['STR_GT_10W'] = [# ('jaccard', 'qgm_3', 'qgm_3'),
+                                  ('jaccard', 'dlm_dc0', 'dlm_dc0'),
+                                  ('cosine', 'dlm_dc0', 'dlm_dc0'),
+                                  ('dice', 'dlm_dc0', 'dlm_dc0'),
+                                  ('overlap', 'dlm_dc0', 'dlm_dc0'),
+                                  # ('lev_sim'), ('lev_dist')
+                                  ]
 
     # Features for NUMERIC type
-    lookup_table['NUM'] = [('exact_match'), ('abs_norm'), ('lev_dist'),
-                           ('lev_sim')]
+    lookup_table['NUM'] = [('exact_match'), ('abs_norm'), 
+                           # ('lev_sim'),
+                           ('lev_dist')]
 
     # Features for BOOLEAN type
     lookup_table['BOOL'] = [('exact_match')]
@@ -603,6 +632,7 @@ def fill_fn_template(attr1, attr2, sim_func, tok_func_1=None, tok_func_2=None):
         fn_body = fn_body + ')) '
     else:
         fn_body = fn_body + sim_func + '(' + 'ltuple["' + attr1 + '"], rtuple["' + attr2 + '"])'
+
     s += fn_body
 
     return fn_name, attr1, attr2, tok_func_1, tok_func_2, sim_func, s
@@ -650,7 +680,13 @@ def conv_fn_str_to_obj(fn_tup, tok, sim_funcs):
     d_orig.update(tok)
     d_orig.update(sim_funcs)
     d_ret_list = []
+
+    # pdb.set_trace()
+
     for f in fn_tup:
+        if f is None:
+            continue
+        
         d_ret = {}
         name = f[0]
         attr1 = f[1]
@@ -658,7 +694,6 @@ def conv_fn_str_to_obj(fn_tup, tok, sim_funcs):
         tok_1 = f[3]
         tok_2 = f[4]
         simfunction = f[5]
-        # exec(f[6] in d_orig)
         six.exec_(f[6], d_orig)
         d_ret['function'] = d_orig[name]
         d_ret['feature_name'] = name
@@ -671,6 +706,7 @@ def conv_fn_str_to_obj(fn_tup, tok, sim_funcs):
         d_ret['is_auto_generated'] = True
 
         d_ret_list.append(d_ret)
+
     return d_ret_list
 
 

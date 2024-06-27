@@ -18,10 +18,10 @@ sim_function_names = ['affine',
                 'jaro_winkler',
                 'needleman_wunsch',
                 'smith_waterman',
-                'overlap_coeff', 'jaccard', 'dice',
+                'overlap', 'overlap_coeff', 
+                'jaccard', 'dice',
                 'monge_elkan', 'cosine',
-                'exact_match', 'rel_diff', 'abs_norm'
-                      ]
+                'exact_match', 'rel_diff', 'abs_norm']
 
 # abbreviations for sim. functions
 abbreviations = ['aff',
@@ -31,7 +31,8 @@ abbreviations = ['aff',
        'jwn',
        'nmw',
        'swn',
-       'ovrlp', 'jac', 'dice',
+       'ovlp', 'ovrlp', 
+       'jac', 'dice',
        'mel', 'cos',
        'exm', 'rdf', 'anm']
 
@@ -95,7 +96,8 @@ def get_sim_funs():
            jaro_winkler,
            needleman_wunsch,
            smith_waterman,
-           overlap_coeff, jaccard, dice,
+           overlap, overlap_coeff, 
+           jaccard, dice,
            monge_elkan, cosine,
            exact_match, rel_diff, abs_norm]
     # Return a dictionary with the functions names as the key and the actual
@@ -558,6 +560,42 @@ def overlap_coeff(arr1, arr2):
     measure = sm.OverlapCoefficient()
     # Call the function to return the overlap coefficient
     return measure.get_raw_score(arr1, arr2)
+
+def overlap(arr1, arr2):
+    """
+    This function computes the overlap value between the two input
+    lists/sets.
+
+    Args:
+        arr1,arr2 (list or set): The input lists or sets for which the overlap
+            coefficient should be computed.
+
+    Returns:
+        The overlap coefficient if both the lists/sets are not None and do not
+        have any missing tokens (i.e NaN), else  returns NaN.
+
+    Examples:
+        >>> import py_entitymatching as em
+        >>> em.overlap_coeff(['data', 'science'], ['data'])
+        1
+        >>> em.overlap_coeff(['data', 'science'], None)
+        nan
+
+    """
+
+    if arr1 is None or arr2 is None:
+        return np.NaN
+    if not isinstance(arr1, list):
+        arr1 = [arr1]
+    if any(pd.isnull(arr1)):
+        return np.NaN
+    if not isinstance(arr2, list):
+        arr2 = [arr2]
+    if any(pd.isnull(arr2)):
+        return np.NaN
+    # Call the function to return the overlap value
+    sarr1, sarr2 = set(arr1), set(arr2)
+    return len(set.intersection(sarr1, sarr2))
 
 def dice(arr1, arr2):
     """

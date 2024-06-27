@@ -385,11 +385,20 @@ class RuleBasedBlocker(Blocker):
         r_output_attrs_1 = []
         if r_output_attrs:
             r_output_attrs_1 = [x for x in r_output_attrs if x != r_key]
+        # l_output_attrs_1.remove('PARSE_EXP')
+        # r_output_attrs_1.remove('PARSE_EXP')
 
         # # get attributes to project
         l_proj_attrs, r_proj_attrs = self.get_attrs_to_project(l_key, r_key,
                                                                l_output_attrs_1,
                                                                r_output_attrs_1)
+        if 'PARSE_EXP' in l_proj_attrs:
+            l_proj_attrs.remove('PARSE_EXP')
+        if 'PARSE_EXP' in r_proj_attrs:
+            r_proj_attrs.remove('PARSE_EXP')
+        # print(l_proj_attrs, r_proj_attrs)
+        # print(l_output_attrs_1, r_output_attrs_1)
+        # print(l_df, r_df)
         l_df, r_df = l_df[l_proj_attrs], r_df[r_proj_attrs]
         
         candset, rule_applied = self.block_tables_with_filters(l_df, r_df,
